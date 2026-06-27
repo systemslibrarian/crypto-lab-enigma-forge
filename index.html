@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Anti-flash: apply the saved theme before any styles load. Dark is the
+         default when localStorage is empty (Crypto Lab shared contract). -->
+    <script>
+      (function () {
+        const saved = localStorage.getItem('theme');
+        document.documentElement.setAttribute('data-theme', saved ?? 'dark');
+      })();
+    </script>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>"
+    />
+    <meta
+      name="description"
+      content="Mechanical Enigma simulation with rotor/plugboard path tracing plus the crib and simulated-Bombe cryptanalytic break — real wiring, no backend."
+    />
+    <title>Enigma Forge — crypto-lab</title>
+    <script type="module" crossorigin src="/crypto-lab-enigma-forge/assets/index-B5j-qkPY.js"></script>
+    <link rel="stylesheet" crossorigin href="/crypto-lab-enigma-forge/assets/index-CRhtYM67.css">
+  </head>
+  <body>
+    <!-- Part 0 PENDING: paste the canonical shared-header.html snippet here,
+         immediately after <body>, and replace __REPO__ with crypto-lab-enigma-forge.
+         Do not hand-build a header. -->
+    <div id="app"></div>
+    <footer class="scripture-footer">
+      <p>So whether you eat or drink or whatever you do, do it all for the glory of God. — 1 Corinthians 10:31</p>
+    </footer>
+  </body>
+</html>
