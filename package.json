@@ -1,0 +1,20 @@
+{
+  "name": "crypto-lab-enigma-forge",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Mechanical Enigma I simulation + the crib/Bombe cryptanalytic break (Crypto Lab)",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "happy-dom": "^20.10.6",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.4"
+  }
+}
