@@ -1,4 +1,4 @@
-# Enigma Forge
+# crypto-lab-enigma-forge
 
 ## What It Is
 
@@ -39,6 +39,21 @@ and plugboard pairs (Steckerbrett). The break workflow then takes a crib and
 ciphertext through placement (self-map rejection), menu construction, and a
 simulated Bombe that recovers candidate settings you can load back to read the message.
 
+## What Can Go Wrong
+
+- The reflector is fixed-point-free, so no letter ever encrypts to itself — a structural leak that crib placement exploits to reject impossible alignments.
+- Predictable plaintext (stereotyped openings, weather reports) gives cribs that a Bombe-style search uses to eliminate rotor and plugboard settings.
+- Operator procedure failures — reused message keys, lazy rotor choices, repeated indicators — historically shrank the effective keyspace far below its theoretical size.
+- The large keyspace (~10²³) creates a false sense of security; exploitable structure, not brute force, is what broke it.
+- It provides no authentication or integrity and no forward secrecy, so ciphertext can be altered undetectably.
+
+## Real-World Usage
+
+- Historically the primary German military cipher of World War II; breaking it (the Polish Biuro Szyfrów, then Bletchley Park) materially affected the war.
+- A foundational case study in cryptanalysis teaching — known-plaintext attacks, search-space reduction, and why keyspace size alone is not security.
+- The origin point for mechanized codebreaking (the Bombe), a precursor to modern computing.
+- Today purely a teaching and museum artifact, not used for any real protection.
+
 ## How to Run Locally
 
 ```bash
@@ -48,14 +63,15 @@ npm install
 npm run dev
 ```
 
-No environment variables are required — everything runs in the browser with no backend.
+## Related Demos
 
-## Part of the Crypto-Lab Suite
-
-> One of 100+ live browser demos at
-> [systemslibrarian.github.io/crypto-lab](https://systemslibrarian.github.io/crypto-lab/)
-> — spanning Atbash (600 BCE) through NIST FIPS 203/204/205 (2024).
+- [crypto-lab-vigenere-break](https://systemslibrarian.github.io/crypto-lab-vigenere-break/) — breaking a classical polyalphabetic cipher with Kasiski and frequency analysis.
+- [crypto-lab-dead-sea-cipher](https://systemslibrarian.github.io/crypto-lab-dead-sea-cipher/) — substitution, Vigenère, and Atbash, the historical ciphers Enigma descends from.
+- [crypto-lab-otp-vault](https://systemslibrarian.github.io/crypto-lab-otp-vault/) — the one cipher with provable secrecy, and the key-reuse mistake that breaks it.
+- [crypto-lab-biham-lens](https://systemslibrarian.github.io/crypto-lab-biham-lens/) — modern differential cryptanalysis of a substitution-permutation network.
 
 ---
 
-*"Whether you eat or drink, or whatever you do, do all to the glory of God." — 1 Corinthians 10:31*
+*One of 60+ browser demos in the [Crypto Lab](https://crypto-lab.systemslibrarian.dev/) suite.*
+
+*"So whether you eat or drink or whatever you do, do it all for the glory of God." — 1 Corinthians 10:31*
