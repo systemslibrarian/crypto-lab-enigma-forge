@@ -4,8 +4,39 @@
  * the calm-machine / alarm-exploit visual semantics. Colour is never the sole
  * signal: every state also carries an icon + text and a shape where relevant. */
 
+/* Theme contract (Crypto Lab shared): the always-dark shared header toggles
+ * data-theme on <html> between 'dark' (default) and 'light' and persists it in
+ * localStorage['theme']. Dark is :root; light overrides the same variables. We
+ * do NOT use prefers-color-scheme. --accent is the catalog brass #b5651d in
+ * both themes so the header tints correctly (never falling back to teal). */
 :root {
-  --accent: #b5651d; /* brass/bronze — Historical wing */
+  --accent: #b5651d; /* brass/bronze — Historical wing (header tint) */
+
+  --bg: #181410;
+  --surface: #221c15;
+  --surface-2: #2c2419;
+  --ink: #f2ebdf;
+  --ink-soft: #c3b6a0;
+  --line: #43382a;
+
+  --calm: var(--accent);
+  --calm-soft: #3a2c1a;
+
+  /* alarm / exploit palette — high contrast on both surfaces */
+  --alarm: #ff7a70;
+  --alarm-bg: #3a1a17;
+  --warn: #e6b450;
+  --warn-bg: #352a12;
+  --win: #5fd39a; /* "good for the attacker" = a confirmed stop */
+  --win-bg: #173524;
+
+  --focus: #8ab4ff;
+  --radius: 10px;
+  --mono: ui-monospace, "SFMono-Regular", "Cascadia Code", "Consolas", monospace;
+}
+
+:root[data-theme='light'] {
+  --accent: #b5651d;
 
   --bg: #f6f3ee;
   --surface: #fffdf9;
@@ -17,41 +48,20 @@
   --calm: var(--accent);
   --calm-soft: #ecd9c2;
 
-  /* alarm / exploit palette — high contrast on both surfaces */
   --alarm: #b3271e;
   --alarm-bg: #fbe9e7;
   --warn: #9a6a00;
   --warn-bg: #fbf1d8;
-  --win: #146c43; /* "good for the attacker" = a confirmed stop */
+  --win: #146c43;
   --win-bg: #dff3e7;
 
   --focus: #1d4ed8;
-  --radius: 10px;
-  --mono: ui-monospace, "SFMono-Regular", "Cascadia Code", "Consolas", monospace;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --accent: #d98a3d; /* brighter brass for dark backgrounds (contrast) */
-    --bg: #181410;
-    --surface: #221c15;
-    --surface-2: #2c2419;
-    --ink: #f2ebdf;
-    --ink-soft: #c3b6a0;
-    --line: #43382a;
-    --calm: var(--accent);
-    --calm-soft: #3a2c1a;
-    --alarm: #ff7a70;
-    --alarm-bg: #3a1a17;
-    --warn: #e6b450;
-    --warn-bg: #352a12;
-    --win: #5fd39a;
-    --win-bg: #173524;
-    --focus: #8ab4ff;
-  }
 }
 
 * { box-sizing: border-box; }
+
+html { background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--ink); }
 
 #app {
   max-width: 1040px;
@@ -455,3 +465,14 @@ textarea { resize: vertical; }
   .align-pick { min-height: 40px; padding: 0.3rem 0.6rem; } /* touch target for crib offsets */
   .ring-row { flex-wrap: wrap; }
 }
+
+/* ---- scripture footer (Part D) ---- */
+.scripture-footer {
+  text-align: center;
+  padding: 2rem 1rem;
+  font-size: 0.85rem;
+  border-top: 1px solid var(--line);
+  color: var(--ink-soft);
+  margin-top: 2rem;
+}
+.scripture-footer p { margin: 0; }
