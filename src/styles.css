@@ -295,6 +295,47 @@ textarea { resize: vertical; }
 .edge-list { display: flex; flex-wrap: wrap; gap: 4px; }
 .edge-chip { font-size: 0.8rem; background: var(--surface-2); border: 1px solid var(--line); border-radius: 5px; padding: 0.1rem 0.35rem; }
 
+/* menu coach */
+.menu-coach { border-radius: 8px; padding: 0.5rem 0.75rem; margin: 0.4rem 0; border: 1px solid var(--line); }
+.menu-coach.good { background: var(--win-bg); border-color: var(--win); }
+.menu-coach.warn { background: var(--warn-bg); border-color: var(--warn); }
+.menu-coach.bad { background: var(--alarm-bg); border-color: var(--alarm); }
+.coach-headline { font-weight: 700; margin: 0 0 0.3rem; }
+.menu-coach.good .coach-headline { color: var(--win); }
+.menu-coach.warn .coach-headline { color: var(--warn); }
+.menu-coach.bad .coach-headline { color: var(--alarm); }
+.coach-tips { margin: 0; padding-left: 1.1rem; font-size: 0.88rem; }
+.coach-tips li { margin: 0.1rem 0; }
+
+/* ring search */
+.ring-toggle { font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem; }
+.ring-controls { margin: 0.4rem 0; }
+.ring-grid { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 0.4rem; }
+.ring-row { display: flex; align-items: center; gap: 0.4rem; }
+.ring-row-label { font-weight: 600; min-width: 4rem; font-size: 0.85rem; }
+.ring-row select { width: auto; }
+.search-estimate { font-size: 0.85rem; color: var(--ink-soft); margin: 0.3rem 0; }
+.search-estimate.warn { color: var(--warn); font-weight: 600; }
+
+/* bombe progress + counters */
+.bombe-progress { margin: 0.5rem 0; }
+.pbar { width: 100%; height: 0.8rem; }
+.bombe-counters { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.4rem; }
+.counter { display: flex; flex-direction: column; align-items: center; padding: 0.25rem 0.6rem; border-radius: 8px; border: 1px solid var(--line); background: var(--surface-2); min-width: 5rem; }
+.counter-value { font: 800 1.1rem var(--mono); }
+.counter-label { font-size: 0.7rem; text-transform: uppercase; }
+.counter.bad { border-color: var(--alarm); } .counter.bad .counter-value { color: var(--alarm); }
+.counter.warn { border-color: var(--warn); } .counter.warn .counter-value { color: var(--warn); }
+.counter.good { border-color: var(--win); } .counter.good .counter-value { color: var(--win); }
+
+/* candidate explainability */
+.cand-why { font-size: 0.85rem; }
+.cand-why summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+.why-strip { display: flex; flex-direction: column; gap: 0.2rem; margin: 0.3rem 0; }
+.lstrip { display: flex; gap: 0.5rem; align-items: baseline; }
+.lstrip-label { min-width: 4rem; font-size: 0.75rem; }
+.lstrip-text { letter-spacing: 0.12em; word-break: break-all; }
+
 .bombe-controls { display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap; margin: 0.5rem 0; }
 .bombe-status { font-weight: 600; padding: 0.5rem 0.7rem; border-radius: 8px; background: var(--surface-2); min-height: 1.2em; }
 .bombe-status.running { background: var(--warn-bg); color: var(--warn); }

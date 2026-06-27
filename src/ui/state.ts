@@ -2,6 +2,7 @@
 
 import type { MachineSettings, PathTrace } from '../enigma/types';
 import { Machine } from '../enigma/machine';
+import type { Scope, RingSearch } from '../break/scenarios';
 
 export interface AppState {
   settings: MachineSettings;
@@ -14,6 +15,12 @@ export interface AppState {
   crib: string;
   breakCiphertext: string;
   selectedOffset: number | null;
+  scope: Scope; // rotor-order search scope
+  ringSearch: RingSearch; // advanced: search ring settings too
+}
+
+export function defaultRingSearch(): RingSearch {
+  return { enabled: false, ranges: [[0, 0], [0, 0], [0, 25]] };
 }
 
 export function defaultSettings(): MachineSettings {
@@ -36,6 +43,8 @@ export function createState(): AppState {
     crib: 'WETTERBERICHT',
     breakCiphertext: '',
     selectedOffset: null,
+    scope: 'current',
+    ringSearch: defaultRingSearch(),
   };
 }
 

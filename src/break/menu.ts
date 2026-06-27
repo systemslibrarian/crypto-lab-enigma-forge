@@ -69,3 +69,47 @@ export function buildMenu(crib: string, ciphertext: string, offset: number): Men
 
   return { edges, nodes, degree, central, components, loops };
 }
+
+export interface MenuCoach {
+  tone: 'good' | 'warn' | 'bad';
+  headline: string;
+  tips: string[];
+}
+
+/**
+ * Turn raw menu stats into actionable cryptanalytic judgement. Loops are the
+ * decisive factor: each independent loop lets the Bombe reject ~25/26 of wrong
+ * guesses, so loops are roughly worth a factor of 26 in discrimination.
+ */
+export function menuCoach(menu: Menu, cribLength: number): MenuCoach {
+  const tips: string[] = [];
+  const maxDegree = menu.central ? menu.degree[menu.central] : 0;
+
+  if (menu.loops >= 2) {
+    tips.push(`${menu.loops} loops — strong leverage; each loop kills ~25/26 of wrong settings.`);
+    if (cribLength >= 10) tips.push('Crib is long enough to pin the Stecker too — expect few, clean stops.');
+    return {
+      tone: 'good',
+      headline: 'Strong menu — loops + length give the Bombe real bite.',
+      tips,
+    };
+  }
+
+  if (menu.loops === 1) {
+    tips.push('One loop — usable, but expect a small handful of stops to verify.');
+    tips.push('A longer crib or a different surviving offset may add a second loop.');
+    return { tone: 'warn', headline: 'Usable menu — one loop closes the deduction once.', tips };
+  }
+
+  // no loops
+  tips.push('No loops — the deduction is a tree, so almost any setting stays consistent.');
+  tips.push('Expect many coincidental stops, weeded out only by the crib re-check.');
+  if (cribLength < 10) tips.push('Try a longer crib — more letters means more chances for a loop.');
+  if (maxDegree <= 1) tips.push('No repeated letters link the menu; a crib with repeats helps.');
+  tips.push('Try a different surviving offset — placement changes which letters link up.');
+  return {
+    tone: 'bad',
+    headline: 'Weak menu — no loops, so the Bombe leans on the crib re-check alone.',
+    tips,
+  };
+}

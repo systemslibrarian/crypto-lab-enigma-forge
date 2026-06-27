@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { Machine } from '../src/enigma/machine';
 import type { MachineSettings } from '../src/enigma/types';
 import { findCribAlignments, cleanText } from '../src/break/crib';
-import { buildMenu } from '../src/break/menu';
+import { buildMenu, menuCoach } from '../src/break/menu';
 import { runBombe } from '../src/break/bombe';
 
 describe('crib alignment (self-map rejection)', () => {
@@ -50,6 +50,12 @@ describe('menu construction', () => {
     const menu = buildMenu('AB', 'BA', 0);
     expect(menu.nodes.sort()).toEqual(['A', 'B']);
     expect(menu.loops).toBe(1);
+  });
+
+  it('menu coach grades by loops', () => {
+    expect(menuCoach({ loops: 0 } as never, 5).tone).toBe('bad');
+    expect(menuCoach({ loops: 1, central: 'A', degree: { A: 2 } } as never, 8).tone).toBe('warn');
+    expect(menuCoach({ loops: 3, central: 'A', degree: { A: 4 } } as never, 12).tone).toBe('good');
   });
 });
 
@@ -152,4 +158,61 @@ describe('simulated Bombe end-to-end recovery', () => {
     // ...but a tiny crib doesn't pin it down — several settings also fit
     expect(result.candidates.length).toBeGreaterThan(1);
   }, 30000);
+
+  it('partitions every tested setting into contradiction / crib-reject / stop', () => {
+    const truth: MachineSettings = {
+      rotorOrder: ['I', 'II', 'III'],
+      ringSettings: [0, 0, 0],
+      positions: [7, 2, 19],
+      reflector: 'B',
+      plugboard: [{ a: 'A', b: 'R' }],
+    };
+    const cipher = new Machine(truth).encrypt('WETTERBERICHTHEUTE');
+    const menu = buildMenu('WETTERBERICHT', cipher, 0);
+    const progressTicks: number[] = [];
+    const result = runBombe(
+      'WETTERBERICHT',
+      cipher,
+      menu,
+      { reflector: 'B', ringSettings: [0, 0, 0], rotorOrders: [['I', 'II', 'III']] },
+      (p) => progressTicks.push(p.configsTested),
+      500,
+    );
+    // the three buckets exactly account for every tested setting
+    expect(result.contradictionRejects + result.cribRejects + result.stops).toBe(
+      result.configsTested,
+    );
+    expect(result.stops).toBe(result.candidates.length);
+    expect(result.configsTested).toBe(26 * 26 * 26);
+    // progress was reported and is monotonic
+    expect(progressTicks.length).toBeGreaterThan(1);
+    for (let i = 1; i < progressTicks.length; i++) {
+      expect(progressTicks[i]).toBeGreaterThanOrEqual(progressTicks[i - 1]);
+    }
+  }, 30000);
+
+  it('recovers an unknown ring setting when asked to search it', () => {
+    const truth: MachineSettings = {
+      rotorOrder: ['I', 'II', 'III'],
+      ringSettings: [0, 0, 3], // right ring = D, unknown to the search
+      positions: [1, 1, 1],
+      reflector: 'B',
+      plugboard: [],
+    };
+    const cipher = new Machine(truth).encrypt('WETTERBERICHTHEUTE');
+    const menu = buildMenu('WETTERBERICHT', cipher, 0);
+    // jointly search the right ring (small window) and positions (small window
+    // that contains the truth) — both unknowns are recovered together
+    const result = runBombe('WETTERBERICHT', cipher, menu, {
+      reflector: 'B',
+      ringSettings: [0, 0, 0],
+      rotorOrders: [['I', 'II', 'III']],
+      ringRanges: [[0, 0], [0, 0], [0, 5]],
+      positionRanges: [[0, 3], [0, 3], [0, 3]],
+    });
+    const hit = result.candidates.find(
+      (c) => c.ringSettings[2] === 3 && c.positions.join(',') === '1,1,1',
+    );
+    expect(hit, 'true ring + position must be recovered').toBeTruthy();
+  }, 60000);
 });

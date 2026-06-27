@@ -12,7 +12,9 @@
 //   branch dies on a CONTRADICTION — exactly how a wrong setting is rejected.
 //
 // Surviving stops are then verified by actually decrypting the crib region, the
-// same sanity check a Bombe operator performed at each stop.
+// same sanity check a Bombe operator performed at each stop. Every tested
+// setting ends up in exactly one bucket: rejected by contradiction, rejected by
+// the crib re-check, or surfaced as a stop.
 
 import { Machine } from '../enigma/machine';
 import { toIdx, toChar } from '../enigma/wirings';
@@ -21,10 +23,11 @@ import type { Menu } from './menu';
 
 export interface BombeSearchSpec {
   reflector: ReflectorName;
-  ringSettings: number[]; // assumed known (often AAA for teaching), length 3
+  ringSettings: number[]; // base rings (used when not searching rings), length 3
   rotorOrders: RotorName[][]; // explicit list of orders to try
-  // optional position window; defaults to the full 26^3 space per rotor order
+  // optional search windows; default to the full 26-wide range per rotor
   positionRanges?: [number, number][]; // [start,end] inclusive per rotor (L,M,R)
+  ringRanges?: [number, number][]; // [start,end] inclusive per rotor (L,M,R)
 }
 
 export interface BombeCandidate {
@@ -35,14 +38,30 @@ export interface BombeCandidate {
   stecker: PlugPair[]; // deduced plugboard pairs
   loopsClosed: number; // menu loops that closed consistently (confidence)
   verified: boolean; // crib region re-decrypts to the crib
+  offset: number; // where the crib sits in the message
+  decryptedCrib: string; // the crib window decrypted with this candidate (== crib)
 }
 
 export interface BombeResult {
   candidates: BombeCandidate[];
   configsTested: number;
+  contradictionRejects: number; // configs killed because no Stecker hypothesis was consistent
+  cribRejects: number; // configs consistent but failed the crib re-check
+  stops: number; // verified candidates (== candidates.length)
   loopsInMenu: number;
   underConstrained: boolean; // menu has no loops -> deduction can't reject much
 }
+
+export interface BombeProgress {
+  configsTested: number;
+  total: number;
+  contradictionRejects: number;
+  cribRejects: number;
+  stops: number;
+  current: { rotorOrder: RotorName[]; positions: number[]; ringSettings: number[] };
+}
+
+export type ProgressFn = (p: BombeProgress) => void;
 
 /** All distinct ordered selections of `k` rotors from `set`. */
 export function rotorOrderPermutations(set: RotorName[], k = 3): RotorName[][] {
@@ -58,6 +77,19 @@ export function rotorOrderPermutations(set: RotorName[], k = 3): RotorName[][] {
   };
   pick([], set);
   return out;
+}
+
+/** Cartesian product of inclusive ranges, e.g. [[0,1],[0,0],[2,3]] -> 4 tuples. */
+function combos(ranges: [number, number][]): number[][] {
+  let acc: number[][] = [[]];
+  for (const [lo, hi] of ranges) {
+    const next: number[][] = [];
+    for (const prefix of acc) {
+      for (let v = lo; v <= hi; v++) next.push([...prefix, v]);
+    }
+    acc = next;
+  }
+  return acc;
 }
 
 /** Build the scrambler permutation used at each absolute keystroke index up to
@@ -89,7 +121,12 @@ interface Propagation {
  * menu using the supplied scramblers. Returns whether it stayed consistent and
  * how many redundant (loop-closing) edges confirmed without contradiction.
  */
-function propagate(menu: Menu, scr: number[][], central: number, h: number): Propagation {
+function propagate(
+  edges: { p: number; c: number; pos: number }[],
+  scr: number[][],
+  central: number,
+  h: number,
+): Propagation {
   const steck = new Map<number, number>();
   let loopsClosed = 0;
 
@@ -106,41 +143,33 @@ function propagate(menu: Menu, scr: number[][], central: number, h: number): Pro
 
   if (!assign(central, h)) return { ok: false, loopsClosed: 0, steck };
 
-  const edges = menu.edges.map((e) => ({
-    p: toIdx(e.plain),
-    c: toIdx(e.cipher),
-    s: scr[e.position],
-  }));
-
   // Repeatedly sweep edges, deriving the unknown endpoint from the known one.
   let changed = true;
   while (changed) {
     changed = false;
     for (const e of edges) {
+      const s = scr[e.pos];
       const sp = steck.get(e.p);
       const sc = steck.get(e.c);
       // relationship: steck(cipher) = S(steck(plain))
       if (sp !== undefined) {
-        const want = e.s[sp];
+        const want = s[sp];
         if (sc === undefined) {
           if (!assign(e.c, want)) return { ok: false, loopsClosed, steck };
           changed = true;
         } else if (sc !== want) {
           return { ok: false, loopsClosed, steck };
         } else {
-          // both ends known and consistent -> this edge closed a loop
-          loopsClosed++;
+          loopsClosed++; // both ends known and consistent -> a loop closed
         }
       } else if (sc !== undefined) {
-        const want = e.s[sc]; // S is an involution, so same permutation backwards
+        const want = s[sc]; // S is an involution, so same permutation backwards
         if (!assign(e.p, want)) return { ok: false, loopsClosed, steck };
         changed = true;
       }
     }
   }
 
-  // loopsClosed double-counts (each loop edge can be seen twice across sweeps);
-  // it is only used as a monotonic confidence signal, so cap it sanely.
   return { ok: true, loopsClosed, steck };
 }
 
@@ -158,79 +187,113 @@ function steckToPairs(steck: Map<number, number>): PlugPair[] {
  * @param crib       known plaintext fragment (cleaned)
  * @param ciphertext full ciphertext (cleaned)
  * @param menu       menu built from this crib/offset
- * @param spec       search space (rotor orders, rings, reflector, optional window)
+ * @param spec       search space (rotor orders, rings, reflector, optional windows)
+ * @param onProgress optional callback fired roughly every `progressEvery` configs
  */
 export function runBombe(
   crib: string,
   ciphertext: string,
   menu: Menu,
   spec: BombeSearchSpec,
+  onProgress?: ProgressFn,
+  progressEvery = 800,
 ): BombeResult {
   const candidates: BombeCandidate[] = [];
   let configsTested = 0;
+  let contradictionRejects = 0;
+  let cribRejects = 0;
 
   const maxPos = menu.edges.reduce((m, e) => Math.max(m, e.position), 0);
   const central = toIdx(menu.central);
-  // the crib occupies positions [offset .. offset+crib.length-1]; offset = min edge pos
   const offset = menu.edges.reduce((m, e) => Math.min(m, e.position), maxPos);
 
-  const ranges: [number, number][] = spec.positionRanges ?? [
-    [0, 25],
-    [0, 25],
-    [0, 25],
-  ];
+  const positionRanges = spec.positionRanges ?? ([[0, 25], [0, 25], [0, 25]] as [number, number][]);
+  const ringRanges =
+    spec.ringRanges ??
+    (spec.ringSettings.map((v) => [v, v]) as [number, number][]);
+
+  const positionCombos = combos(positionRanges);
+  const ringCombos = combos(ringRanges);
+  const total = spec.rotorOrders.length * ringCombos.length * positionCombos.length;
+
+  // precompute the edge index list once (menu letters -> indices)
+  const edgeIdx = menu.edges.map((e) => ({ p: toIdx(e.plain), c: toIdx(e.cipher), pos: e.position }));
 
   for (const rotorOrder of spec.rotorOrders) {
-    for (let l = ranges[0][0]; l <= ranges[0][1]; l++) {
-      for (let mPos = ranges[1][0]; mPos <= ranges[1][1]; mPos++) {
-        for (let r = ranges[2][0]; r <= ranges[2][1]; r++) {
-          configsTested++;
-          const start = [l, mPos, r];
-          const scr = scramblersUpTo(rotorOrder, spec.ringSettings, start, spec.reflector, maxPos);
+    for (const rings of ringCombos) {
+      for (const start of positionCombos) {
+        configsTested++;
+        const scr = scramblersUpTo(rotorOrder, rings, start, spec.reflector, maxPos);
 
-          // Try every Stecker partner for the central letter. A wrong rotor
-          // position usually contradicts on the menu loops; survivors are then
-          // verified by re-decrypting the crib region (the operator's check at a
-          // "stop"). Record the first hypothesis that both stays consistent AND
-          // regenerates the crib.
-          for (let h = 0; h < 26; h++) {
-            const prop = propagate(menu, scr, central, h);
-            if (!prop.ok) continue;
-            const stecker = steckToPairs(prop.steck);
-            if (
-              !verifyCrib(
-                crib,
-                ciphertext,
-                offset,
-                rotorOrder,
-                spec.ringSettings,
-                start,
-                spec.reflector,
-                stecker,
-              )
-            ) {
-              continue;
-            }
-            candidates.push({
-              rotorOrder,
-              positions: start,
-              ringSettings: spec.ringSettings,
-              reflector: spec.reflector,
-              stecker,
-              loopsClosed: prop.loopsClosed,
-              verified: true,
-            });
-            break; // one confirmed stop per config is enough
+        let consistentFound = false;
+        let verifiedThis = false;
+        for (let h = 0; h < 26; h++) {
+          const prop = propagate(edgeIdx, scr, central, h);
+          if (!prop.ok) continue;
+          consistentFound = true;
+          const stecker = steckToPairs(prop.steck);
+          if (!verifyCrib(crib, ciphertext, offset, rotorOrder, rings, start, spec.reflector, stecker)) {
+            continue;
           }
+          candidates.push({
+            rotorOrder,
+            positions: start,
+            ringSettings: rings,
+            reflector: spec.reflector,
+            stecker,
+            loopsClosed: prop.loopsClosed,
+            verified: true,
+            offset,
+            decryptedCrib: crib,
+          });
+          verifiedThis = true;
+          break; // one confirmed stop per config is enough
+        }
+        if (verifiedThis) {
+          /* counted via candidates.length */
+        } else if (consistentFound) {
+          cribRejects++;
+        } else {
+          contradictionRejects++;
+        }
+
+        if (onProgress && configsTested % progressEvery === 0) {
+          onProgress({
+            configsTested,
+            total,
+            contradictionRejects,
+            cribRejects,
+            stops: candidates.length,
+            current: { rotorOrder, positions: start, ringSettings: rings },
+          });
         }
       }
     }
   }
 
   candidates.sort((a, b) => b.loopsClosed - a.loopsClosed);
+
+  if (onProgress) {
+    onProgress({
+      configsTested,
+      total,
+      contradictionRejects,
+      cribRejects,
+      stops: candidates.length,
+      current: {
+        rotorOrder: spec.rotorOrders[spec.rotorOrders.length - 1],
+        positions: [25, 25, 25],
+        ringSettings: spec.ringSettings,
+      },
+    });
+  }
+
   return {
     candidates,
     configsTested,
+    contradictionRejects,
+    cribRejects,
+    stops: candidates.length,
     loopsInMenu: menu.loops,
     underConstrained: menu.loops <= 0,
   };
@@ -251,22 +314,13 @@ function verifyCrib(
   reflector: ReflectorName,
   stecker: PlugPair[],
 ): boolean {
-  const settings: MachineSettings = {
-    rotorOrder,
-    ringSettings,
-    positions,
-    reflector,
-    plugboard: stecker,
-  };
+  const settings: MachineSettings = { rotorOrder, ringSettings, positions, reflector, plugboard: stecker };
   let m: Machine;
   try {
     m = new Machine(settings);
   } catch {
     return false; // a deduced Stecker can be self-inconsistent; reject the stop
   }
-  // Stepping is input-independent, so advancing `offset` keystrokes lands the
-  // machine in the crib's starting rotor state. Decrypting the ciphertext crib
-  // region with the candidate Stecker must reproduce the crib.
   for (let i = 0; i < offset; i++) m.advance();
   for (let i = 0; i < crib.length; i++) {
     if ((m.encryptChar(ciphertext[offset + i]) as string) !== crib[i]) return false;
