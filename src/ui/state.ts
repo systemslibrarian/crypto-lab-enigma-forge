@@ -2,7 +2,7 @@
 
 import type { MachineSettings, PathTrace } from '../enigma/types';
 import { Machine } from '../enigma/machine';
-import type { Scope, RingSearch } from '../break/scenarios';
+import type { Scope, RingSearch, Scenario } from '../break/scenarios';
 
 export interface AppState {
   settings: MachineSettings;
@@ -17,6 +17,10 @@ export interface AppState {
   selectedOffset: number | null;
   scope: Scope; // rotor-order search scope
   ringSearch: RingSearch; // advanced: search ring settings too
+
+  // guided-progress tracking (drives the step tracker / success arc)
+  bombeStops: number | null; // null = not run yet
+  candidateLoaded: boolean; // a Bombe stop was loaded back into the machine
 }
 
 export function defaultRingSearch(): RingSearch {
@@ -45,6 +49,44 @@ export function createState(): AppState {
     selectedOffset: null,
     scope: 'current',
     ringSearch: defaultRingSearch(),
+    bombeStops: null,
+    candidateLoaded: false,
+  };
+}
+
+/** Load a scenario into state (deep-copied so the preset stays pristine). */
+export function applyScenario(state: AppState, s: Scenario): void {
+  state.settings = {
+    rotorOrder: [...s.settings.rotorOrder],
+    ringSettings: [...s.settings.ringSettings],
+    positions: [...s.settings.positions],
+    reflector: s.settings.reflector,
+    plugboard: s.settings.plugboard.map((p) => ({ ...p })),
+  };
+  state.message = s.message;
+  state.crib = s.crib;
+  state.breakCiphertext = s.breakCiphertext;
+  state.selectedOffset = s.selectedOffset;
+  state.scope = s.scope;
+  state.ringSearch = s.ringSearch
+    ? { enabled: s.ringSearch.enabled, ranges: s.ringSearch.ranges.map((r) => [...r] as [number, number]) }
+    : defaultRingSearch();
+  state.bombeStops = null;
+  state.candidateLoaded = false;
+}
+
+/** Snapshot the shareable parts of the current state as a Scenario. */
+export function scenarioFromState(state: AppState, name?: string): Scenario {
+  return {
+    v: 1,
+    name,
+    settings: state.settings,
+    message: state.message,
+    crib: state.crib,
+    breakCiphertext: state.breakCiphertext,
+    selectedOffset: state.selectedOffset,
+    scope: state.scope,
+    ringSearch: state.ringSearch,
   };
 }
 

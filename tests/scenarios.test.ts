@@ -14,6 +14,7 @@ import {
 import { Machine } from '../src/enigma/machine';
 import { cleanText, findCribAlignments } from '../src/break/crib';
 import { buildMenu } from '../src/break/menu';
+import { runBombe } from '../src/break/bombe';
 
 describe('scenario encode/decode round-trips', () => {
   it('survives URL-hash encoding', () => {
@@ -83,4 +84,29 @@ describe('curated presets teach their lessons', () => {
     }
     expect(flags).toEqual([false, false, true, false]);
   });
+});
+
+describe('whole-story: the challenge is breakable end-to-end', () => {
+  it('fast scope (challenge rotor order) recovers the true settings', () => {
+    const crib = cleanText(CHALLENGE.crib);
+    const menu = buildMenu(crib, CHALLENGE.breakCiphertext, CHALLENGE.selectedOffset!);
+    const result = runBombe(crib, CHALLENGE.breakCiphertext, menu, {
+      reflector: CHALLENGE.settings.reflector,
+      ringSettings: [...CHALLENGE.settings.ringSettings],
+      rotorOrders: [[...CHALLENGE.settings.rotorOrder]],
+    });
+    const truthPos = CHALLENGE.settings.positions.join(',');
+    const hit = result.candidates.find((c) => c.positions.join(',') === truthPos);
+    expect(hit, 'the canonical challenge must be solvable by the fast scope').toBeTruthy();
+
+    // closing the loop: load the stop and decrypt the whole intercept
+    const decrypted = new Machine({
+      rotorOrder: hit!.rotorOrder,
+      ringSettings: hit!.ringSettings,
+      positions: hit!.positions,
+      reflector: hit!.reflector,
+      plugboard: hit!.stecker,
+    }).encrypt(CHALLENGE.breakCiphertext);
+    expect(decrypted.slice(CHALLENGE.selectedOffset!, CHALLENGE.selectedOffset! + crib.length)).toBe(crib);
+  }, 30000);
 });

@@ -22,7 +22,11 @@ import type { RotorName } from '../enigma/types';
 const SVG = 'http://www.w3.org/2000/svg';
 const ROTOR_LABELS = ['Left', 'Middle', 'Right'];
 
-export function buildBreakPanel(state: AppState, refresh: () => void): Panel {
+export function buildBreakPanel(
+  state: AppState,
+  refresh: () => void,
+  notify: () => void = () => {},
+): Panel {
   // ---- inputs ----
   const cribInput = el('input', {
     type: 'text', id: 'crib-input', class: 'mono', value: state.crib, spellcheck: 'false',
@@ -231,10 +235,12 @@ export function buildBreakPanel(state: AppState, refresh: () => void): Panel {
     bombeStatus.className = 'bombe-status';
     bombeStatus.textContent = '';
     progressWrap.hidden = true;
+    state.bombeStops = null; // changing inputs invalidates a prior run
     const { crib, cipher } = renderAlignments();
     renderMenu(crib, cipher);
     renderRingControls();
     updateEstimate();
+    notify();
   }
 
   // ---------- bombe run ----------
@@ -294,6 +300,8 @@ export function buildBreakPanel(state: AppState, refresh: () => void): Panel {
         runBtn.disabled = false;
         worker?.terminate();
         worker = null;
+        state.bombeStops = msg.result.candidates.length;
+        notify();
       }
     };
     worker.onerror = () => {
@@ -350,7 +358,9 @@ export function buildBreakPanel(state: AppState, refresh: () => void): Panel {
           plugboard: c.stecker.map((p) => ({ ...p })),
         };
         state.message = cipher;
+        state.candidateLoaded = true;
         refresh();
+        notify();
         document.getElementById('machine-h')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       },
     }, ['⤓ Load into Machine & decrypt']);
@@ -452,7 +462,7 @@ export function buildBreakPanel(state: AppState, refresh: () => void): Panel {
     updateEstimate();
   };
 
-  return { root, update, rerender: renderAll } as Panel & { rerender: () => void };
+  return { root, update, rerender: renderAll };
 }
 
 // ---------- small builders ----------

@@ -12,6 +12,7 @@ const KEYBOARD_ROWS = ['QWERTZUIO', 'ASDFGHJK', 'PYXCVBNML'];
 export interface Panel {
   root: HTMLElement;
   update: (s: AppState) => void;
+  rerender?: () => void; // full local repaint (e.g. after a scenario load)
 }
 
 export function buildMachinePanel(state: AppState, refresh: () => void): Panel {
