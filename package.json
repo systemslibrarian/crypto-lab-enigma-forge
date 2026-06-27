@@ -8,10 +8,12 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
+    "deploy": "npm run build && gh-pages -d dist",
     "test": "vitest run",
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "gh-pages": "^6.3.0",
     "happy-dom": "^20.10.6",
     "typescript": "^5.6.3",
     "vite": "^5.4.10",
