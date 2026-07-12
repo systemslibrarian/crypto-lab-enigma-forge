@@ -63,15 +63,24 @@ function resetBlank(): void {
 
 controls = buildControls(state, { reseed, resetBlank });
 
-const intro = el('div', { class: 'intro' }, [
-  el('h1', {}, ['Enigma Forge']),
-  el('p', { class: 'tagline' }, ['How the machine actually worked — and how it was actually broken.']),
-  el('p', { class: 'scope-note' }, [
-    'Scope: Enigma I (3-rotor Wehrmacht), reflectors B/C, rotors I–V. ',
-    el('span', { class: 'muted' }, [
-      'Not naval M4, not Lorenz (M4 is a planned extension). No backend, no network, nothing saved.',
+const intro = el('header', { class: 'cl-hero' }, [
+  el('div', { class: 'cl-hero-main' }, [
+    el('h1', { class: 'cl-hero-title' }, ['Enigma Forge']),
+    el('p', { class: 'cl-hero-sub' }, ['Enigma I · rotor · plugboard · reflector · crib + Bombe']),
+    el('p', { class: 'cl-hero-desc' }, [
+      'Trace a keystroke through the live rotor, plugboard, and reflector wiring, then run a crib against a simulated Bombe to recover the daily key.',
     ]),
   ]),
+  el('aside', { class: 'cl-hero-why', 'aria-label': 'Why it matters' }, [
+    el('span', { class: 'cl-hero-why-label' }, ['WHY IT MATTERS']),
+    el('p', { class: 'cl-hero-why-text' }, [
+      'Enigma had a ~10^23 keyspace yet fell to hand-guessed cribs. Its reflector guaranteed no letter ever encrypts to itself — one structural flaw that let the Bombe reject wrong keys en masse. A huge keyspace is not strength.',
+    ]),
+  ]),
+]);
+const scopeNote = el('p', { class: 'scope-note muted' }, [
+  'Scope: Enigma I (3-rotor Wehrmacht), reflectors B/C, rotors I–V. ',
+  'Not naval M4, not Lorenz (M4 is a planned extension). No backend, no network, nothing saved.',
 ]);
 
 const comparison = buildComparisonPanel();
@@ -81,6 +90,7 @@ const appendix = buildAppendixPanel();
 panels = [controls, machine, path, flaw, brk, comparison, limits, appendix];
 app.append(
   intro,
+  scopeNote,
   controls.root,
   machine.root,
   path.root,
