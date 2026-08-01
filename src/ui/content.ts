@@ -29,7 +29,9 @@ export function buildComparisonPanel(): Panel {
     ]),
     el('div', { class: 'cmp-grid' }, [
       col('cmp-strong', '🛡 Looked unbreakable', [
-        ['#', '≈ 1.5 × 10²³ keys — rotor order, positions, rings and plugboard combined.'],
+        ['#', '≈ 1.07 × 10²³ keys — rotor choice and order (60) × start positions (17,576) × the two ' +
+          'effective ring settings (676) × 10-cable plugboard (150,738,274,937,250). Excluding rings, ' +
+          'the usual figure is ≈ 1.59 × 10²⁰.'],
         ['#', 'Keys changed daily; yesterday’s break bought nothing today.'],
         ['#', 'Plugboard alone added ≈ 1.5 × 10¹⁴ pairings.'],
         ['#', 'Rotors stepped every keystroke — the substitution never repeated for 16,900 letters.'],
