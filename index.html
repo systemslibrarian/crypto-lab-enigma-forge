@@ -23,11 +23,6 @@
     <title>Enigma Forge — crypto-lab</title>
   </head>
   <body>
-<!-- BEGIN crypto-lab shared header — managed; edit shared-header.html + re-run reapply-header.py
-     Identical on every lab. Self-contained styles. Accents use each demo's own
-     --accent CSS variable (teal #35d6bb fallback). The ONLY per-repo value is the
-     repo name (__REPO__) in the GitHub link.
-     Source of truth: github.com/systemslibrarian/crypto-lab/shared-header.html -->
 <style>
   .cl-topbar{
     /* The bar is always dark (#0b1512) regardless of page theme, so header
@@ -139,8 +134,11 @@
     else dedupeBanner();
   })();
 </script>
-<!-- END crypto-lab shared header -->
-    <div id="app"></div>
+    <!-- The lab renders into this element; it is the page's main landmark and
+         the skip-link target. It must stay a main element so the lab's own
+         cl-hero header is scoped out of the banner role (the shared topbar
+         above is the page's only banner). -->
+    <main id="app"></main>
     <script type="module" src="/src/main.ts"></script>
     <footer class="scripture-footer">
       <p>Related demos:

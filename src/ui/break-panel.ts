@@ -361,7 +361,12 @@ export function buildBreakPanel(
         state.candidateLoaded = true;
         refresh();
         notify();
-        document.getElementById('machine-h')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        // Smooth scrolling is motion: honour prefers-reduced-motion (WCAG 2.3.3).
+        const behavior: ScrollBehavior =
+          typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+            ? 'auto'
+            : 'smooth';
+        document.getElementById('machine-h')?.scrollIntoView({ behavior, block: 'start' });
       },
     }, ['⤓ Load into Machine & decrypt']);
 

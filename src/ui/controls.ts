@@ -77,8 +77,13 @@ const BEATS: { title: string; body: string; target: string; action?: 'seed' }[] 
 ];
 
 export function buildControls(state: AppState, actions: ControlActions): Panel {
+  // Smooth scrolling is motion: honour prefers-reduced-motion (WCAG 2.3.3).
+  const smooth = (): ScrollBehavior =>
+    typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches
+      ? 'auto'
+      : 'smooth';
   const scrollTo = (id: string) =>
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById(id)?.scrollIntoView({ behavior: smooth(), block: 'start' });
 
   // ---- scenario toolbar ----
   const exampleSelect = el('select', { 'aria-label': 'Load an example scenario',
@@ -195,7 +200,9 @@ export function buildControls(state: AppState, actions: ControlActions): Panel {
   // ---- presenter mode ----
   let beat = 0;
   const overlay = el('div', { class: 'presenter', hidden: true, role: 'dialog', 'aria-label': 'Presenter mode', 'aria-modal': 'false' });
-  const beatTitle = el('h3', { class: 'beat-title' });
+  // h2, not h3: the controls panel has no heading of its own, so an h3 here
+  // would follow the page h1 directly and skip a level (WCAG 1.3.1).
+  const beatTitle = el('h2', { class: 'beat-title' });
   const beatBody = el('p', { class: 'beat-body' });
   const beatCount = el('span', { class: 'beat-count muted' });
   const prevBtn = el('button', { type: 'button', class: 'btn', onclick: () => gotoBeat(beat - 1) }, ['‹ Prev']);
