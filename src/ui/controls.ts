@@ -6,6 +6,8 @@ import { el, clear } from './dom';
 import type { AppState } from './state';
 import { scenarioFromState } from './state';
 import type { Panel } from './machine-panel';
+import { cleanText } from '../break/crib';
+import { toChar } from '../enigma/wirings';
 import {
   PRESETS,
   CHALLENGE,
@@ -34,8 +36,23 @@ const STEPS: Step[] = [
   { label: 'Load the ciphertext', hint: 'Send the output to the break panel', target: 'break-h', done: (s) => s.breakCiphertext.length > 0 },
   { label: 'Place the crib', hint: 'Reject impossible offsets, build the menu', target: 'break-h', done: (s) => s.selectedOffset != null },
   { label: 'Run the Bombe', hint: 'Let contradictions kill wrong settings', target: 'break-h', done: (s) => s.bombeStops != null },
-  { label: 'Recover & decrypt', hint: 'Load a stop back and read it', target: 'machine-h', done: (s) => s.candidateLoaded },
+  { label: 'Recover & check', hint: 'Load a stop back and re-check the crib', target: 'machine-h', done: (s) => s.loadedStop != null },
 ];
+
+/**
+ * Re-derive the "did it work?" verdict from the machine's CURRENT output rather
+ * than from the fact that a Load button was pressed. `state.output` is produced
+ * by `recomputeMachine` running the real Enigma over the loaded ciphertext with
+ * the loaded settings, so this check comes out FALSE whenever those settings do
+ * not actually reproduce the crib — which is the whole point of having it.
+ */
+function checkLoadedStop(s: AppState): { cribOk: boolean; got: string; plugs: number } | null {
+  const stop = s.loadedStop;
+  if (!stop) return null;
+  const crib = cleanText(stop.crib);
+  const got = cleanText(s.output).slice(stop.offset, stop.offset + crib.length);
+  return { cribOk: got === crib && crib.length > 0, got, plugs: s.settings.plugboard.length };
+}
 
 const BEATS: { title: string; body: string; target: string; action?: 'seed' }[] = [
   {
@@ -66,7 +83,7 @@ const BEATS: { title: string; body: string; target: string; action?: 'seed' }[] 
   },
   {
     title: 'A stop is a candidate',
-    body: 'Each surviving stop is verified against the crib, then loaded back to decrypt the whole message. Not magic — structured elimination plus a sanity check.',
+    body: 'Each surviving stop is verified by actually re-decrypting the crib, then loaded back into the machine. What it recovers is the key — rotor start plus the Steckers the menu touched. Any pair the menu never touched is still missing, so the rest of the message may read transposed. Not magic: structured elimination plus a sanity check, and then hand-finishing.',
     target: 'machine-h',
   },
   {
@@ -188,13 +205,18 @@ export function buildControls(state: AppState, actions: ControlActions): Panel {
         ]),
       );
     });
-    const allDone = STEPS.every((st) => st.done(s));
-    successBanner.hidden = !s.candidateLoaded;
-    if (s.candidateLoaded) {
-      successBanner.textContent = allDone
-        ? '✓ Cracked it. You recovered the rotor order, start position and Stecker, and the ciphertext reads as plaintext — by elimination, not brute force.'
-        : '✓ Settings loaded — the machine now decrypts the intercept.';
-    }
+    const check = checkLoadedStop(s);
+    successBanner.hidden = check === null;
+    if (!check) return;
+
+    const stop = s.loadedStop!;
+    const where = `${s.settings.rotorOrder.join('-')} · UKW-${s.settings.reflector} · start ${s.settings.positions.map(toChar).join('')}`;
+    successBanner.classList.toggle('failed', !check.cribOk);
+    successBanner.textContent = check.cribOk
+      ? `✓ Checked: with ${where} and ${check.plugs} Stecker pair(s), the machine re-decrypts offset ${stop.offset} to “${cleanText(stop.crib)}” — recovered by elimination, not brute force. ` +
+        'The Bombe can only deduce Steckers that touch the menu, so any remaining pairs are still unknown and letters outside the crib may read transposed; those are finished by hand.'
+      : `✗ Not verified: ${where} decrypts offset ${stop.offset} to “${check.got || '—'}”, not “${cleanText(stop.crib)}”. ` +
+        'The settings have been changed since the stop was loaded, so this is no longer a break.';
   }
 
   // ---- presenter mode ----

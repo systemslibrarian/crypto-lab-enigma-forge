@@ -13,7 +13,7 @@ import { buildFlawPanel } from '../src/ui/flaw-panel';
 import { buildBreakPanel } from '../src/ui/break-panel';
 import { buildControls } from '../src/ui/controls';
 import { buildComparisonPanel, buildLimitsPanel, buildAppendixPanel } from '../src/ui/content';
-import type { Scenario } from '../src/break/scenarios';
+import { CHALLENGE, type Scenario } from '../src/break/scenarios';
 
 function mountAll() {
   const state = createState();
@@ -205,16 +205,30 @@ describe('guided flow, scenarios and presenter', () => {
     expect(state.lastAlphaTrace?.doubleStep).toBe(true);
   });
 
-  it('completing the arc reveals the success banner', () => {
+  it('the success banner re-checks the crib instead of trusting the load', () => {
     const { state, root, refresh } = mountApp();
     const banner = root.querySelector('.success-banner') as HTMLElement;
     expect(banner.hidden).toBe(true);
-    // simulate the end of the arc directly (the worker can't run in happy-dom)
+
+    // Simulate the end of the arc directly (the worker can't run in happy-dom):
+    // put the CHALLENGE ciphertext in the machine under the true settings.
     state.bombeStops = 1;
-    state.candidateLoaded = true;
+    state.settings = {
+      rotorOrder: ['I', 'II', 'III'], ringSettings: [0, 0, 0], positions: [7, 2, 19],
+      reflector: 'B', plugboard: [{ a: 'A', b: 'R' }],
+    };
+    state.message = CHALLENGE.breakCiphertext;
+    state.loadedStop = { offset: 0, crib: 'WETTERBERICHT' };
     refresh();
     expect(banner.hidden).toBe(false);
-    expect(banner.textContent).toMatch(/recovered|decrypt/i);
+    expect(banner.textContent).toMatch(/^✓ Checked/);
+    // It must NOT claim the whole intercept reads as plaintext — it does not.
+    expect(banner.textContent).toMatch(/may read transposed/i);
+
+    // Falsifiability: break the settings and the same banner must come out false.
+    state.settings.positions = [0, 0, 0];
+    refresh();
+    expect(banner.textContent).toMatch(/^✗ Not verified/);
   });
 });
 

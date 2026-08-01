@@ -20,7 +20,14 @@ export interface AppState {
 
   // guided-progress tracking (drives the step tracker / success arc)
   bombeStops: number | null; // null = not run yet
-  candidateLoaded: boolean; // a Bombe stop was loaded back into the machine
+  /**
+   * The Bombe stop that was loaded back into the machine, or null. This carries
+   * the crib and its offset ON PURPOSE: the success banner re-derives its verdict
+   * by checking that the CURRENT settings really do decrypt `crib` at `offset`.
+   * A bare "a stop was loaded" boolean would let the banner claim a break that was
+   * never checked — the banner must be able to come out false.
+   */
+  loadedStop: { offset: number; crib: string } | null;
 }
 
 export function defaultRingSearch(): RingSearch {
@@ -50,7 +57,7 @@ export function createState(): AppState {
     scope: 'current',
     ringSearch: defaultRingSearch(),
     bombeStops: null,
-    candidateLoaded: false,
+    loadedStop: null,
   };
 }
 
@@ -72,7 +79,7 @@ export function applyScenario(state: AppState, s: Scenario): void {
     ? { enabled: s.ringSearch.enabled, ranges: s.ringSearch.ranges.map((r) => [...r] as [number, number]) }
     : defaultRingSearch();
   state.bombeStops = null;
-  state.candidateLoaded = false;
+  state.loadedStop = null;
 }
 
 /** Snapshot the shareable parts of the current state as a Scenario. */

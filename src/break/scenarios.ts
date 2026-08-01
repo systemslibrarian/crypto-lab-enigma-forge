@@ -161,7 +161,10 @@ export const CHALLENGE: Scenario = make(
   'challenge',
   'Break this message',
   'An intercepted weather report. The crib WETTERBERICHT is a near-certain opener. ' +
-    'Place it, build the menu, run the Bombe, and load a stop back to read it.',
+    'Place it, build the menu, run the Bombe, and load the stop back: it recovers the rotor start ' +
+    'and the A-R Stecker exactly. F-L never touches the menu, so it is NOT recovered — a few letters ' +
+    'outside the crib stay transposed until you wire that pair by hand. That gap is the lesson: ' +
+    'a stop is a recovered key, not a finished decrypt.',
   O(['I', 'II', 'III'], [0, 0, 0], [7, 2, 19], 'B', [
     { a: 'A', b: 'R' },
     { a: 'F', b: 'L' },

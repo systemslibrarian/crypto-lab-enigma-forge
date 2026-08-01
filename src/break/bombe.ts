@@ -39,7 +39,13 @@ export interface BombeCandidate {
   loopsClosed: number; // menu loops that closed consistently (confidence)
   verified: boolean; // crib region re-decrypts to the crib
   offset: number; // where the crib sits in the message
-  decryptedCrib: string; // the crib window decrypted with this candidate (== crib)
+  /**
+   * The crib window as this candidate ACTUALLY decrypts it — the output of
+   * `decryptCribWindow`, never an echo of the input crib. A stop is only
+   * surfaced when this equals the crib, but it is displayed as computed so a
+   * broken verifier would show a mismatch instead of a fake match.
+   */
+  decryptedCrib: string;
 }
 
 export interface BombeResult {
@@ -232,9 +238,11 @@ export function runBombe(
           if (!prop.ok) continue;
           consistentFound = true;
           const stecker = steckToPairs(prop.steck);
-          if (!verifyCrib(crib, ciphertext, offset, rotorOrder, rings, start, spec.reflector, stecker)) {
-            continue;
-          }
+          const decryptedCrib = decryptCribWindow(
+            crib.length, ciphertext, offset, rotorOrder, rings, start, spec.reflector, stecker,
+          );
+          const verified = decryptedCrib === crib;
+          if (!verified) continue;
           candidates.push({
             rotorOrder,
             positions: start,
@@ -242,9 +250,9 @@ export function runBombe(
             reflector: spec.reflector,
             stecker,
             loopsClosed: prop.loopsClosed,
-            verified: true,
+            verified,
             offset,
-            decryptedCrib: crib,
+            decryptedCrib,
           });
           verifiedThis = true;
           break; // one confirmed stop per config is enough
@@ -300,12 +308,17 @@ export function runBombe(
 }
 
 /**
- * Decrypt just the crib region with a candidate setting and confirm it matches
- * the crib. Stepping is input-independent, so we advance the machine `offset`
- * keystrokes to reach the crib's starting rotor state, then decrypt the crib.
+ * Decrypt just the crib region with a candidate setting and RETURN what it
+ * actually produced — the caller compares it to the crib. Returning the plaintext
+ * rather than a boolean is deliberate: the UI shows this string, so what the page
+ * displays as "→ plain" is the machine's real output, not the crib echoed back.
+ *
+ * Stepping is input-independent, so we advance the machine `offset` keystrokes to
+ * reach the crib's starting rotor state, then decrypt `cribLength` characters.
+ * Returns '' when the deduced Stecker is self-inconsistent (an impossible stop).
  */
-function verifyCrib(
-  crib: string,
+export function decryptCribWindow(
+  cribLength: number,
   ciphertext: string,
   offset: number,
   rotorOrder: RotorName[],
@@ -313,17 +326,18 @@ function verifyCrib(
   positions: number[],
   reflector: ReflectorName,
   stecker: PlugPair[],
-): boolean {
+): string {
   const settings: MachineSettings = { rotorOrder, ringSettings, positions, reflector, plugboard: stecker };
   let m: Machine;
   try {
     m = new Machine(settings);
   } catch {
-    return false; // a deduced Stecker can be self-inconsistent; reject the stop
+    return ''; // a deduced Stecker can be self-inconsistent; reject the stop
   }
   for (let i = 0; i < offset; i++) m.advance();
-  for (let i = 0; i < crib.length; i++) {
-    if ((m.encryptChar(ciphertext[offset + i]) as string) !== crib[i]) return false;
+  let out = '';
+  for (let i = 0; i < cribLength; i++) {
+    out += m.encryptChar(ciphertext[offset + i]) as string;
   }
-  return true;
+  return out;
 }

@@ -67,7 +67,11 @@ export function buildLimitsPanel(): Panel {
         'option searches them, but the space multiplies fast — guardrails warn before you commit.'),
       item('Plugboard deduction', 'Only Steckers that touch the menu’s letters are recovered. ' +
         'Pairs between two letters that never appear in the crib region are invisible to the search ' +
-        '(they don’t affect the crib, so the stop still verifies).'),
+        '(they don’t affect the crib, so the stop still verifies) — which means loading a verified ' +
+        'stop decrypts the crib exactly but can still leave the REST of the message transposed. ' +
+        'The bundled challenge is deliberately one of those cases: its second Stecker pair never ' +
+        'touches the menu, so a few letters outside the crib come back wrong until you plug it by hand. ' +
+        'A stop is a recovered key, not a finished decrypt.'),
       item('Toward M4', 'A naval break would need a 4th (thin) rotor, the thin UKW-b/c reflectors, and ' +
         'a longer rotor stack. The engine already takes a variable-length stack and pluggable reflectors ' +
         '— see the “M4 extension point” comments — so it is additive, not a rewrite.'),

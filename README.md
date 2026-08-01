@@ -37,7 +37,13 @@ diagram update per keystroke. Controls include rotor selection and order (I–V)
 ring settings (Ringstellung), initial positions (Grundstellung), reflector (B/C),
 and plugboard pairs (Steckerbrett). The break workflow then takes a crib and
 ciphertext through placement (self-map rejection), menu construction, and a
-simulated Bombe that recovers candidate settings you can load back to read the message.
+simulated Bombe that recovers candidate settings you can load back into the machine.
+Every stop is surfaced only after the crib window is genuinely re-decrypted, and the
+success banner re-runs that check against the machine's live output rather than
+trusting that a stop was loaded. Note the honest limit: the Bombe can only deduce
+Steckers that touch the menu, so a loaded stop reproduces the crib exactly but may
+leave letters elsewhere transposed until the remaining plugboard pairs are found by
+hand — the bundled challenge is deliberately one of those cases.
 
 ## What Can Go Wrong
 

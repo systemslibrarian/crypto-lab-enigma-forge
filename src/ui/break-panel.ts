@@ -358,7 +358,10 @@ export function buildBreakPanel(
           plugboard: c.stecker.map((p) => ({ ...p })),
         };
         state.message = cipher;
-        state.candidateLoaded = true;
+        // Record what must hold, not that a button was pressed: the success
+        // banner re-decrypts this crib at this offset under whatever settings
+        // the machine ends up with, so it can (and will) report failure.
+        state.loadedStop = { offset: c.offset, crib: c.decryptedCrib };
         refresh();
         notify();
         // Smooth scrolling is motion: honour prefers-reduced-motion (WCAG 2.3.3).
@@ -386,6 +389,12 @@ export function buildBreakPanel(
       el('p', { class: 'muted' }, [
         `${c.loopsClosed > 0 ? `${c.loopsClosed} consistent loop closure(s); ` : 'No loops to close; '}`,
         'every contradiction the propagation hit eliminated a competing guess.',
+      ]),
+      el('p', { class: 'muted' }, [
+        'What this does NOT claim: the crib window is the only part re-decrypted here. ',
+        'The Bombe can only deduce Steckers that touch the menu, so a pair whose letters never ',
+        'appear in the crib region stays unknown — load this stop and the text outside the crib ',
+        'may still read transposed until you finish the plugboard by hand.',
       ]),
     ]);
 
