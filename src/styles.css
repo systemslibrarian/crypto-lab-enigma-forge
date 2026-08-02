@@ -27,6 +27,7 @@
   --ink: #f2ebdf;
   --ink-soft: #c3b6a0;
   --line: #43382a;
+  --control-line: #7d6b56;
 
   --calm: var(--accent);
   --calm-soft: #3a2c1a;
@@ -59,6 +60,7 @@
   --ink: #211c15;
   --ink-soft: #5c5346;
   --line: #d9cfbe;
+  --control-line: #887b69;
 
   --calm: var(--accent);
   --calm-soft: #ecd9c2;
@@ -139,7 +141,7 @@ select, input[type="text"], textarea {
   font: inherit;
   color: var(--ink);
   background-color: var(--surface);
-  border: 1px solid var(--line);
+  border: 1px solid var(--control-line);
   border-radius: 8px;
   padding: 0.4rem 0.5rem;
   width: 100%;
