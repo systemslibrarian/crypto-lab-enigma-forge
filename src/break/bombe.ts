@@ -126,6 +126,12 @@ interface Propagation {
  * Propagate one Stecker hypothesis (central letter -> partner `h`) around the
  * menu using the supplied scramblers. Returns whether it stayed consistent and
  * how many redundant (loop-closing) edges confirmed without contradiction.
+ *
+ * A loop closure is a PROPERTY OF AN EDGE, so each edge can contribute at most
+ * one. The sweep below re-visits every edge after each new assignment, so
+ * counting on every visit inflated the total past the edge count itself (a
+ * 13-edge menu reported 20 closures); the closed set below counts each edge once,
+ * which keeps `loopsClosed` bounded by the menu's independent loop count.
  */
 function propagate(
   edges: { p: number; c: number; pos: number }[],
@@ -134,7 +140,8 @@ function propagate(
   h: number,
 ): Propagation {
   const steck = new Map<number, number>();
-  let loopsClosed = 0;
+  const resolved = new Set<number>(); // edge indices already used, either way
+  const closed = new Set<number>(); // edge indices that were redundant when first met
 
   // assign u<->v as a plug pair; false on any contradiction with prior knowledge
   const assign = (u: number, v: number): boolean => {
@@ -153,7 +160,8 @@ function propagate(
   let changed = true;
   while (changed) {
     changed = false;
-    for (const e of edges) {
+    for (let i = 0; i < edges.length; i++) {
+      const e = edges[i];
       const s = scr[e.pos];
       const sp = steck.get(e.p);
       const sc = steck.get(e.c);
@@ -161,22 +169,27 @@ function propagate(
       if (sp !== undefined) {
         const want = s[sp];
         if (sc === undefined) {
-          if (!assign(e.c, want)) return { ok: false, loopsClosed, steck };
+          if (!assign(e.c, want)) return { ok: false, loopsClosed: closed.size, steck };
+          resolved.add(i); // this edge derived a new partner: a tree edge, not a loop
           changed = true;
         } else if (sc !== want) {
-          return { ok: false, loopsClosed, steck };
-        } else {
-          loopsClosed++; // both ends known and consistent -> a loop closed
+          return { ok: false, loopsClosed: closed.size, steck };
+        } else if (!resolved.has(i)) {
+          // Both ends were already known the first time this edge was reached, and
+          // they agree: the edge was redundant, i.e. it closed a loop.
+          resolved.add(i);
+          closed.add(i);
         }
       } else if (sc !== undefined) {
         const want = s[sc]; // S is an involution, so same permutation backwards
-        if (!assign(e.p, want)) return { ok: false, loopsClosed, steck };
+        if (!assign(e.p, want)) return { ok: false, loopsClosed: closed.size, steck };
+        resolved.add(i);
         changed = true;
       }
     }
   }
 
-  return { ok: true, loopsClosed, steck };
+  return { ok: true, loopsClosed: closed.size, steck };
 }
 
 function steckToPairs(steck: Map<number, number>): PlugPair[] {

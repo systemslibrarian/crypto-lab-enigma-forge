@@ -191,6 +191,37 @@ describe('simulated Bombe end-to-end recovery', () => {
     }
   }, 30000);
 
+  it('never reports more loop closures than the menu has independent loops', () => {
+    // Regression: the propagation re-sweeps every edge after each new assignment,
+    // and counting a closure on every visit inflated the reported number past the
+    // edge count itself (a 13-edge, 3-loop menu reported 20 closures). A loop
+    // closure is a property of an EDGE, so it can never exceed the menu's
+    // independent loop count — and the UI prints this number verbatim.
+    const truth: MachineSettings = {
+      rotorOrder: ['I', 'II', 'III'],
+      ringSettings: [0, 0, 0],
+      positions: [7, 2, 19],
+      reflector: 'B',
+      plugboard: [{ a: 'A', b: 'R' }, { a: 'F', b: 'L' }],
+    };
+    const crib = 'WETTERBERICHT';
+    const cipher = new Machine(truth).encrypt(
+      'WETTERBERICHTFUERDIENACHTKEINEBESONDERENVORKOMMNISSE',
+    );
+    const menu = buildMenu(crib, cipher, 0);
+    const result = runBombe(crib, cipher, menu, {
+      reflector: 'B',
+      ringSettings: [0, 0, 0],
+      rotorOrders: [['I', 'II', 'III']],
+    });
+    expect(result.candidates.length).toBeGreaterThan(0);
+    expect(menu.loops).toBeGreaterThan(0);
+    for (const c of result.candidates) {
+      expect(c.loopsClosed).toBeGreaterThanOrEqual(0);
+      expect(c.loopsClosed).toBeLessThanOrEqual(menu.loops);
+    }
+  }, 30000);
+
   it('recovers an unknown ring setting when asked to search it', () => {
     const truth: MachineSettings = {
       rotorOrder: ['I', 'II', 'III'],
