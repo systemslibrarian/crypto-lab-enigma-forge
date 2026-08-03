@@ -6,7 +6,7 @@ import { defineConfig, devices } from '@playwright/test';
  * single Chromium project in the dark (default) color scheme.
  */
 
-const PORT = 4223;
+const PORT = 4634;
 const BASE = '/crypto-lab-enigma-forge/';
 
 export default defineConfig({
