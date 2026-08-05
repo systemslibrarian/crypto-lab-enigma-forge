@@ -117,7 +117,10 @@ export function buildAppendixPanel(): Panel {
     ]),
 
     el('h3', {}, ['Test vectors (computed live)']),
-    el('div', { class: 'table-scroll' }, [
+    // WCAG 2.1.1: `.vec-table` is `min-width: 520px`, so this scrolls at phone
+    // widths and holds no link or control. See path-visualizer.ts for why the
+    // fix is `tabindex="0"` and not a labelled region.
+    el('div', { class: 'table-scroll', tabindex: '0' }, [
       el('table', { class: 'vec-table' }, [
         el('thead', {}, [el('tr', {}, [
           el('th', {}, ['Note']), el('th', {}, ['Settings']), el('th', {}, ['Plaintext']), el('th', {}, ['Ciphertext']),

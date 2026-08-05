@@ -37,7 +37,10 @@ export function buildFlawPanel(): Panel {
         el('figcaption', {}, ['Input (columns) → output (rows). A marker off the red diagonal for every column; never on it.']),
       ]),
     ]),
-    el('div', { class: 'strip-wrap' }, [strip]),
+    // WCAG 2.1.1: 26 letter cells measure ~508px, so this scrolls at phone
+    // widths and holds nothing focusable. See path-visualizer.ts for why the
+    // fix is `tabindex="0"` and not a labelled region.
+    el('div', { class: 'strip-wrap', tabindex: '0' }, [strip]),
     verdict,
   ]);
 

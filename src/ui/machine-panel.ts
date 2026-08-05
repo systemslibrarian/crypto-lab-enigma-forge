@@ -160,7 +160,12 @@ export function buildMachinePanel(state: AppState, refresh: () => void): Panel {
   // --- rotor windows ---
   const windowCells = labels.map(() => el('span', { class: 'window-cell' }, ['A']));
   const stepBadge = el('span', { class: 'step-badge', 'aria-live': 'polite' });
-  const rotorWindows = el('div', { class: 'rotor-windows', 'aria-label': 'Rotor windows' }, [
+  // role="group" is not decoration here. ARIA prohibits aria-label on an
+  // element with no role (or a generic one), and the browser silently DISCARDS
+  // the name rather than reporting anything — so these three labels existed in
+  // the markup and in no accessibility tree. axe files that under `incomplete`,
+  // which never reaches a gate asserting on `violations`.
+  const rotorWindows = el('div', { class: 'rotor-windows', role: 'group', 'aria-label': 'Rotor windows' }, [
     el('span', { class: 'rotor-windows-label' }, ['Windows']),
     ...windowCells.map((c, i) =>
       el('span', { class: 'window-box' }, [el('small', {}, [labels[i].split(' ')[0]]), c]),
@@ -170,7 +175,7 @@ export function buildMachinePanel(state: AppState, refresh: () => void): Panel {
 
   // --- keyboard + lampboard ---
   const lamps = new Map<string, HTMLElement>();
-  const lampboard = el('div', { class: 'lampboard', 'aria-label': 'Lampboard (output)' });
+  const lampboard = el('div', { class: 'lampboard', role: 'group', 'aria-label': 'Lampboard (output)' });
   for (const row of KEYBOARD_ROWS) {
     const r = el('div', { class: 'kb-row' });
     for (const c of row) {
@@ -181,7 +186,7 @@ export function buildMachinePanel(state: AppState, refresh: () => void): Panel {
     lampboard.append(r);
   }
 
-  const keyboard = el('div', { class: 'keyboard', 'aria-label': 'Enigma keyboard' });
+  const keyboard = el('div', { class: 'keyboard', role: 'group', 'aria-label': 'Enigma keyboard' });
   for (const row of KEYBOARD_ROWS) {
     const r = el('div', { class: 'kb-row' });
     for (const c of row) {

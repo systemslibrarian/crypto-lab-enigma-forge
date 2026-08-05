@@ -162,7 +162,13 @@ export function buildBreakPanel(
 
     for (const a of aligns) {
       const cribRow = el('div', { class: 'mono crib-row' });
-      for (let i = 0; i < a.offset; i++) cribRow.append(el('span', { class: 'ch blank' }, ['·']));
+      // `·` is a monospace spacer that pushes the crib to its offset; it is
+      // painted `color: transparent` and carries no meaning, so hide it from
+      // assistive tech rather than making a reader wade through a run of
+      // middle dots before every placement.
+      for (let i = 0; i < a.offset; i++) {
+        cribRow.append(el('span', { class: 'ch blank', 'aria-hidden': 'true' }, ['·']));
+      }
       for (let i = 0; i < crib.length; i++) {
         const conflict = a.conflicts.includes(i);
         cribRow.append(el('span', { class: `ch${conflict ? ' conflict' : ''}` }, [crib[i]]));
@@ -185,7 +191,12 @@ export function buildBreakPanel(
         : el('span', { class: 'align-rejected' }, [`✗ offset ${a.offset} rejected`]);
       alignList.append(
         el('div', { class: `align-item${a.valid ? '' : ' rejected'}${selected ? ' selected' : ''}` }, [
-          head, el('div', { class: 'align-strips' }, [cribRow, cipherRow]),
+          // WCAG 2.1.1: the crib/cipher strips are `min-width: max-content` and
+          // scroll at phone widths. The offset button beside them is a sibling,
+          // not a descendant, so the strips themselves have no keyboard route
+          // without a tabindex. See path-visualizer.ts for why it is a bare
+          // `tabindex="0"` and not a labelled region.
+          head, el('div', { class: 'align-strips', tabindex: '0' }, [cribRow, cipherRow]),
         ]),
       );
     }

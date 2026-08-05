@@ -41,7 +41,13 @@ export function buildPathVisualizer(onDoubleStepDemo?: () => void): Panel {
       'plugboard, forward R→M→L, bounced by the reflector, back L→M→R, out through the plugboard.',
     ]),
     positionsLine,
-    el('div', { class: 'path-scroll' }, [flow]),
+    // WCAG 2.1.1: `.path-flow` is `min-width: max-content` and a nine-stage
+    // trace measures ~1113px, so this scrolls horizontally even in the 926px
+    // desktop column — and it holds no focusable content, so without a tabindex
+    // a keyboard-only reader cannot reach the stages scrolled out of view.
+    // `tabindex="0"` alone, deliberately: role="region" + aria-label would make
+    // a landmark out of a container rebuilt on every keystroke.
+    el('div', { class: 'path-scroll', tabindex: '0' }, [flow]),
     caption,
     historyLine,
   ]);
