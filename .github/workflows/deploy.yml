@@ -3,6 +3,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -32,11 +34,16 @@ jobs:
       - name: Browser gates (functional claims + axe-core WCAG A/AA)
         run: npm run test:e2e
       - uses: actions/upload-pages-artifact@v3
+        # PRs (esp. Dependabot) get a read-only token without pages:write, so
+        # skip the Pages artifact upload — PR runs stop at build+test.
+        if: github.event_name != 'pull_request'
         with:
           path: dist
 
   deploy:
     needs: build
+    # Never deploy from a PR — only push-to-main / manual dispatch deploys.
+    if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
