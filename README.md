@@ -81,3 +81,5 @@ npm run dev
 *Part of the [Crypto Lab](https://crypto-lab.systemslibrarian.dev/) suite.*
 
 *"So whether you eat or drink or whatever you do, do it all for the glory of God." — 1 Corinthians 10:31*
+
+<!-- ci-preflight: no-op change to validate PR CI trigger -->
