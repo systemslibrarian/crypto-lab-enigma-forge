@@ -655,3 +655,34 @@ test('the ciphertext handed to the break panel is the machine output verbatim', 
   expect(output).toContain(' ');
   await expect(page.locator('.align-summary')).toContainText('offsets survive self-map rejection');
 });
+
+/* ── The hidden attribute must actually hide ──────────────────────────────
+ * `[hidden] { display: none }` is a UA rule using an attribute selector, so any
+ * class rule setting `display` outranks it. Two did — `.import-box` and
+ * `.presenter`, both `display: flex` — so a 926x140 import dialog and a
+ * 1280x151 full-width presenter overlay, ✕ / Prev / Next controls and all,
+ * painted at first paint inside regions the markup declares hidden.
+ *
+ * This asserts the property for EVERY element carrying `hidden`, so a future
+ * `display` on any hideable class fails here instead of shipping.
+ */
+test('nothing marked hidden is painted', async ({ page }) => {
+  await page.goto('.');
+
+  const total = await page.locator('[hidden]').count();
+  expect(total, 'no [hidden] elements — this test would prove nothing').toBeGreaterThan(0);
+
+  const painted = await page.evaluate(() =>
+    [...document.querySelectorAll('[hidden]')]
+      .map((el) => {
+        const r = el.getBoundingClientRect();
+        return {
+          who: el.id || el.className.toString(),
+          display: getComputedStyle(el).display,
+          size: `${Math.round(r.width)}x${Math.round(r.height)}`,
+        };
+      })
+      .filter((x) => x.display !== 'none'),
+  );
+  expect(painted, 'elements marked hidden are painted').toEqual([]);
+});

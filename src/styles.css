@@ -45,6 +45,18 @@
   --mono: ui-monospace, "SFMono-Regular", "Cascadia Code", "Consolas", monospace;
 }
 
+/* The `hidden` attribute must actually hide.
+   The UA rule is `[hidden] { display: none }` — an attribute selector, which any
+   class rule setting `display` outranks. Two did: `.import-box { display: flex }`
+   and `.presenter { display: flex }`, so a 926x140 import dialog and a 1280x151
+   full-width presenter overlay — with its ✕ / Prev / Next controls, focusable —
+   both painted at first paint, inside regions the markup declares hidden.
+   `!important` is load-bearing: without it any future `display` on a hideable
+   class silently wins again, which is how this shipped. */
+[hidden] {
+  display: none !important;
+}
+
 :root[data-theme='light'] {
   color-scheme: light;
 
