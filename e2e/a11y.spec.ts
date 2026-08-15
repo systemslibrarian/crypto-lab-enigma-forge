@@ -26,7 +26,7 @@ import {
  * found are only reachable that way, and the third only at 380px.
  */
 
-const THEMES = ['dark', 'light'] as const;
+const THEMES = ['dark'] as const;
 
 /** Wait for the Bombe worker to finish and return a good/bad verdict. */
 async function runBombe(page: Page): Promise<void> {

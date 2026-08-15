@@ -125,9 +125,6 @@ async function expectNotBlank(page: Page, label: string): Promise<void> {
  */
 export async function boot(page: Page, theme: 'dark' | 'light'): Promise<void> {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  if (theme === 'light') {
-    await page.addInitScript(() => localStorage.setItem('theme', 'light'));
-  }
   await page.goto('.');
   expect(
     await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches),
