@@ -139,8 +139,12 @@ export function buildMachinePanel(state: AppState, refresh: () => void): Panel {
           type: 'button',
           class: `plug-key${partner ? ' plugged' : ''}${isArmed ? ' armed' : ''}`,
           'aria-pressed': partner || isArmed ? 'true' : 'false',
+          // A plugged key shows its letter and its partner, "AB", so the name
+          // opens with exactly that pair: axe 4.14 compares the accessible
+          // name against what a SIGHTED user sees (label-content-name-mismatch,
+          // WCAG 2.5.3 Label in Name).
           'aria-label': partner
-            ? `${c}, plugged to ${partner}. Activate to unplug.`
+            ? `${c}${partner}: ${c} plugged to ${partner}. Activate to unplug.`
             : isArmed
               ? `${c}, selected. Pick a second letter to wire, or press again to cancel.`
               : `${c}, unplugged`,

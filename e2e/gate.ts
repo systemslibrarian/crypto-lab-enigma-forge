@@ -324,8 +324,31 @@ export async function scan(page: Page, label: string): Promise<void> {
     .map((v) => ({
       state: label,
       id: v.id,
-      nodes: v.nodes.map((n) => n.target.join(' ')).slice(0, 8),
-    }));
+      // Second allowance, and only for the single-letter keys: the unplugged
+      // plugboard keys and the typing keyboard.
+      //
+      // axe cannot judge label-content-name-mismatch for a control whose
+      // visible text is a single character, so it files each unplugged key
+      // under `incomplete` whatever its name says. A plugged key shows two
+      // letters and IS judged — and passes, because its name now opens with
+      // that pair. The letter has to stay in the DOM: it is which key this is,
+      // not decoration, and a learner reads and clicks it.
+      //
+      // Dropped node by node, so any other element under the same rule still
+      // fails, and a real violation of it still fails. Each key's name does
+      // contain its letter: the one reading "A" is named "A, unplugged".
+      nodes: v.nodes
+        .map((n) => n.target.join(' '))
+        .filter(
+          (t) =>
+            !(
+              v.id === 'label-content-name-mismatch' &&
+              /\[aria-label="(?:[A-Z], unplugged|Type [A-Z])"\]/.test(t)
+            ),
+        ),
+    }))
+    .filter((v) => v.nodes.length > 0)
+    .map((v) => ({ ...v, nodes: v.nodes.slice(0, 8) }));
   expect(unexplainedIncomplete, `axe incomplete results in state: ${label}`).toEqual([]);
 
   // Deduplicated: a single stylesheet mistake can repeat across 700+ identical

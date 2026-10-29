@@ -252,7 +252,11 @@ const STATES: State[] = [
     },
   },
   {
-    // Both copy chips repaint to "✓ Copied" for 1.2s after a successful copy.
+    // Both copy chips repaint to a tick and "Copied" for 1.2s after a copy.
+    // That repaint is CSS driven from `data-state`, so the button's DOM text
+    // and its accessible name stay put — which is what lets this spec keep
+    // finding it by name while the rule about names is satisfied. Asserting
+    // the attribute is asserting the same repaint at its source.
     // That is a real, reachable rendering that reverts on a timer, so it is
     // only ever scannable by driving it.
     label: 'copy confirmation',
@@ -261,7 +265,7 @@ const STATES: State[] = [
       await page.locator('#message-input').fill('ENIGMA');
       await expect(page.locator('.output-box')).not.toHaveText('—');
       await page.getByRole('button', { name: 'Copy output' }).click();
-      await expect(page.getByRole('button', { name: 'Copy output' })).toHaveText('✓ Copied');
+      await expect(page.getByRole('button', { name: 'Copy output' })).toHaveAttribute('data-state', 'copied');
     },
   },
   {

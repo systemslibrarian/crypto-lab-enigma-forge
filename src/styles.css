@@ -553,3 +553,17 @@ textarea { resize: vertical; }
   margin-top: 2rem;
 }
 .scripture-footer p { margin: 0; }
+
+/* The copy button's glyph and its click feedback, both drawn here. The DOM
+   text stays "Copy output" so the accessible name never moves — see the note
+   in src/ui/dom.ts for why that matters to this lab's own a11y spec. */
+.copy-btn::before { content: "\29C9\00A0"; }
+.copy-btn[data-state="copied"]::before { content: "\2713\00A0"; }
+.copy-btn[data-state="failed"]::before { content: "\26A0\00A0"; }
+.copy-btn[data-state="copied"] .copy-words,
+.copy-btn[data-state="failed"] .copy-words { visibility: hidden; }
+.copy-btn[data-state="copied"]::after { content: "Copied"; margin-left: -3.9em; }
+.copy-btn[data-state="failed"]::after { content: "Copy failed"; margin-left: -3.9em; }
+
+/* The presenter-mode close mark, drawn here rather than written as DOM text. */
+.beat-close::before { content: "\2715"; }

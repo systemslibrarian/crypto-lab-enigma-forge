@@ -232,7 +232,7 @@ export function buildControls(state: AppState, actions: ControlActions): Panel {
   overlay.append(
     el('div', { class: 'presenter-card' }, [
       el('div', { class: 'beat-head' }, [beatCount,
-        el('button', { type: 'button', class: 'beat-close', 'aria-label': 'Exit presenter mode', onclick: () => closePresenter() }, ['✕']),
+        el('button', { type: 'button', class: 'beat-close', 'aria-label': 'Exit presenter mode', onclick: () => closePresenter() }, []),
       ]),
       beatTitle, beatBody,
       el('div', { class: 'beat-nav' }, [prevBtn, nextBtn]),
