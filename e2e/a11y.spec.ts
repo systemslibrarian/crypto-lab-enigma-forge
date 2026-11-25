@@ -86,7 +86,7 @@ const STATES: State[] = [
       await page.getByRole('button', { name: '⚙ Double-step demo' }).click();
       await expect(page.locator('.window-cell.double')).toHaveCount(1);
       await expect(page.locator('.step-badge.alarm')).toHaveText(
-        '⚙ double-step! middle + left advanced'
+        '⚙ double-step! left, middle and right advanced'
       );
       await expect(page.locator('.pos-double')).toBeVisible();
     },

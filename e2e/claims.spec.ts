@@ -119,7 +119,17 @@ test('the double-step demo reaches the documented ADU sequence', async ({ page }
   await page.goto('.');
   await page.getByRole('button', { name: 'Double-step demo' }).click();
 
-  await expect(page.locator('.step-badge')).toHaveText('⚙ double-step! middle + left advanced');
+  const input = page.locator('#message-input');
+  await input.fill('A');
+  await expect(page.locator('.step-badge')).toHaveText('⚙ right advanced');
+  await expect(page.locator('.window-cell.stepped')).toHaveText(['V']);
+  await input.fill('AA');
+  await expect(page.locator('.step-badge')).toHaveText('⚙ turnover: middle and right advanced');
+  await expect(page.locator('.window-cell.stepped')).toHaveText(['E', 'W']);
+  await expect(page.locator('.path-positions')).toContainText('ADV → AEW');
+  await input.fill('AAA');
+  await expect(page.locator('.step-badge')).toHaveText('⚙ double-step! left, middle and right advanced');
+  await expect(page.locator('.window-cell.stepped')).toHaveText(['B', 'F', 'X']);
   await expect(page.locator('.step-badge')).toHaveClass(/alarm/);
   await expect(page.locator('.path-positions')).toContainText('AEW → BFX');
   await expect(page.locator('.path-positions')).toContainText('double-step');
@@ -127,6 +137,9 @@ test('the double-step demo reaches the documented ADU sequence', async ({ page }
 
   // the appendix's live-computed window sequence must tell the same story
   await expect(page.locator('.appendix')).toContainText('ADV → AEW → BFX → BFY');
+  await input.fill('');
+  await expect(page.locator('.window-cell.stepped')).toHaveCount(0);
+  await expect(page.locator('.step-badge')).toBeEmpty();
 });
 
 test('an illegal machine setting is rejected and rolled back', async ({ page }) => {

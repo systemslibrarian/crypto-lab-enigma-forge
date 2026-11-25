@@ -292,14 +292,14 @@ export function buildMachinePanel(state: AppState, refresh: () => void): Panel {
     const pos = t ? t.rotorPositionsAfter : s.settings.positions;
     windowCells.forEach((cell, i) => {
       cell.textContent = toChar(pos[i]);
+      cell.classList.toggle('stepped', !!t && t.stepped[i]);
     });
-    windowCells[0].classList.toggle('stepped', !!t && t.stepped[0]);
     windowCells[1].classList.toggle('double', !!t && t.doubleStep);
     stepBadge.textContent = t
       ? t.doubleStep
-        ? '⚙ double-step! middle + left advanced'
-        : t.stepped[0]
-          ? '⚙ left advanced (carry)'
+        ? '⚙ double-step! left, middle and right advanced'
+        : t.stepped[1]
+          ? '⚙ turnover: middle and right advanced'
           : '⚙ right advanced'
       : '';
     stepBadge.className = `step-badge${t && t.doubleStep ? ' alarm' : ''}`;

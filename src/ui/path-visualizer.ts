@@ -79,7 +79,7 @@ export function buildPathVisualizer(onDoubleStepDemo?: () => void): Panel {
       el('span', { class: t.doubleStep ? 'pos-double' : '' }, [after]),
       t.doubleStep
         ? el('span', { class: 'pos-tag alarm' }, [' ⚙ double-step (middle dragged the left rotor)'])
-        : el('span', { class: 'muted' }, [t.stepped[0] ? ' (left carried)' : '']),
+        : el('span', { class: 'muted' }, [t.stepped[1] ? ' (right rotor advanced the middle rotor)' : '']),
     );
 
     const animate = !reducedMotion();
