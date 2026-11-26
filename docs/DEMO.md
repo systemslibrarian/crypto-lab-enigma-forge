@@ -28,16 +28,15 @@ walked through it). Everything runs in the browser — no backend, nothing saved
    struck-out offsets: *"No letter self-encrypts, so these placements are impossible —
    for free, before any computation."*
 4. **Menu.** A surviving placement becomes a graph. The **coach** grades it; the
-   challenge menu has loops. Say: *"Loops are leverage — each one kills ~25/26 of wrong
-   settings."*
+   challenge menu has loops. Say: *"A loop checks whether the settings give a consistent result when the path returns
+   to its starting letter. Watch the counter to see how many candidates this menu rules out."*
 5. **Run the Bombe.** Scope = *current rotor order* (fast). Watch the **counters**:
    contradiction rejects, crib-recheck rejects, surviving stops. Say: *"It doesn't
    decrypt — it eliminates contradictions until only consistent stops remain."*
 6. **Recover.** Open **Why this stop survived** on a verified candidate, then
    **⤓ Load into Machine & decrypt**. The crib window now reads as plaintext, and the
    success banner re-checks that for itself against the machine's live output — change a
-   rotor afterwards and the banner flips to "not verified". Say: *"A stop is a recovered
-   key, not a finished decrypt."* On the challenge, the `F-L` Stecker never touches the
+   rotor afterwards and the banner flips to "not verified". Say: *"A stop agrees with the crib. The plugboard can still be incomplete."* On the challenge, the `F-L` Stecker never touches the
    menu, so it is not deduced and a few letters outside the crib stay transposed until you
    wire that pair by hand.
 

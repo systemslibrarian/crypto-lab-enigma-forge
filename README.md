@@ -69,7 +69,7 @@ npm run dev
 ## Related Demos
 
 - [crypto-lab-vigenere-break](https://systemslibrarian.github.io/crypto-lab-vigenere-break/) — breaking a classical polyalphabetic cipher with Kasiski and frequency analysis.
-- [crypto-lab-dead-sea-cipher](https://systemslibrarian.github.io/crypto-lab-dead-sea-cipher/) — substitution, Vigenère, and Atbash, the historical ciphers Enigma descends from.
+- [crypto-lab-dead-sea-cipher](https://systemslibrarian.github.io/crypto-lab-dead-sea-cipher/) — compare Enigma’s changing alphabet with three earlier pen-and-paper ciphers.
 - [crypto-lab-otp-vault](https://systemslibrarian.github.io/crypto-lab-otp-vault/) — the one cipher with provable secrecy, and the key-reuse mistake that breaks it.
 - [crypto-lab-biham-lens](https://systemslibrarian.github.io/crypto-lab-biham-lens/) — modern differential cryptanalysis of a substitution-permutation network.
 

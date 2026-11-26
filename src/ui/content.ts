@@ -71,7 +71,7 @@ export function buildLimitsPanel(): Panel {
         'stop decrypts the crib exactly but can still leave the REST of the message transposed. ' +
         'The bundled challenge is deliberately one of those cases: its second Stecker pair never ' +
         'touches the menu, so a few letters outside the crib come back wrong until you plug it by hand. ' +
-        'A stop is a recovered key, not a finished decrypt.'),
+        'A stop agrees with the crib. The plugboard can still be incomplete.'),
       item('Toward M4', 'A naval break would need a 4th (thin) rotor, the thin UKW-b/c reflectors, and ' +
         'a longer rotor stack. The engine already takes a variable-length stack and pluggable reflectors ' +
         '— see the “M4 extension point” comments — so it is additive, not a rewrite.'),

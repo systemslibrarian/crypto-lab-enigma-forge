@@ -77,16 +77,15 @@ export interface MenuCoach {
 }
 
 /**
- * Turn raw menu stats into actionable cryptanalytic judgement. Loops are the
- * decisive factor: each independent loop lets the Bombe reject ~25/26 of wrong
- * guesses, so loops are roughly worth a factor of 26 in discrimination.
+ * Explain how loops constrain a candidate. The run counters report how many
+ * candidates this particular menu actually eliminates.
  */
 export function menuCoach(menu: Menu, cribLength: number): MenuCoach {
   const tips: string[] = [];
   const maxDegree = menu.central ? menu.degree[menu.central] : 0;
 
   if (menu.loops >= 2) {
-    tips.push(`${menu.loops} loops — strong leverage; each loop kills ~25/26 of wrong settings.`);
+    tips.push(`${menu.loops} loops give the Bombe more consistency checks. The run counters show how many candidates this menu rules out.`);
     if (cribLength >= 10) tips.push('Crib is long enough to pin the Stecker too — expect few, clean stops.');
     return {
       tone: 'good',

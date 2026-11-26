@@ -83,7 +83,7 @@ const BEATS: { title: string; body: string; target: string; action?: 'seed' }[] 
   },
   {
     title: 'A stop is a candidate',
-    body: 'Each surviving stop is verified by actually re-decrypting the crib, then loaded back into the machine. What it recovers is the key — rotor start plus the Steckers the menu touched. Any pair the menu never touched is still missing, so the rest of the message may read transposed. Not magic: structured elimination plus a sanity check, and then hand-finishing.',
+    body: 'The machine checks each stop by decrypting the crib. In the bundled challenge, the stop identifies the starting rotor positions and one plugboard pair. A second pair is still unknown. Letters outside the crib can therefore decrypt incorrectly.',
     target: 'machine-h',
   },
   {
