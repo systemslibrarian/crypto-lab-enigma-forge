@@ -3,15 +3,12 @@
 ## What It Is
 
 Enigma Forge is a faithful, in-browser simulation of the **Wehrmacht Enigma I**
-(3-rotor) cipher machine, paired with the **crib + simulated-Bombe** attack that
-broke it. The cipher is a symmetric, electromechanical polyalphabetic
+(3-rotor) cipher machine, paired with a classroom simulation of the British Bombe’s use of a **crib** (a proposed plaintext passage). The cipher is a symmetric, electromechanical polyalphabetic
 substitution: a signal passes through the plugboard (Steckerbrett), three rotors
 (chosen from I–V, with ring settings and start positions), a reflector (UKW-B or
-UKW-C), back through the rotors, and out the plugboard — stepping the rotors
-every keystroke. It solves the problem of a constantly-changing substitution
-alphabet, and it is its own inverse (the same settings decrypt). It is **not**
+UKW-C), back through the rotors, and out the plugboard — the right rotor advances before each letter is enciphered. The middle and left rotors advance at turnover. To decrypt, restore the original starting positions and use the same rotor order, rings, reflector and plugboard. It is **not**
 secure by any modern standard: a structural flaw (no letter ever encrypts to
-itself) plus predictable cribs let the demo recover settings by elimination.
+itself) helps rule out settings that contradict a crib.
 
 ## When to Use It
 
@@ -24,8 +21,8 @@ itself) plus predictable cribs let the demo recover settings by elimination.
 - **Showing that keyspace size isn't security** — Enigma's ~10²³ keys still fell
   because exploitable structure leaked; a vivid lesson for modern designers.
 - **Do NOT use Enigma for real security.** It is broken: it has no forward
-  secrecy, no authentication, a fixed-point-free reflector that leaks structure,
-  and is trivially recoverable from cribbed ciphertext. This is a teaching tool only.
+  secrecy, no authentication, and its reflector prevents a letter from encrypting to itself. In the bundled example,
+  a setting can reproduce the entire crib while decrypting other letters incorrectly.
 
 ## Live Demo
 
@@ -57,7 +54,7 @@ hand — the bundled challenge is deliberately one of those cases.
 
 - Historically the primary German military cipher of World War II; breaking it (the Polish Biuro Szyfrów, then Bletchley Park) materially affected the war.
 - A foundational case study in cryptanalysis teaching — known-plaintext attacks, search-space reduction, and why keyspace size alone is not security.
-- The origin point for mechanized codebreaking (the Bombe), a precursor to modern computing.
+- Polish cryptanalysts built the bomba before the British Bombe was developed. The two machines used different methods. [GCHQ’s account of the Pyry Forest meeting](https://www.gchq.gov.uk/sites/default/files/pdfs/publication/the-pyry-forest-meeting.pdf)
 - Today purely a teaching and museum artifact, not used for any real protection.
 
 ## How to Run Locally
